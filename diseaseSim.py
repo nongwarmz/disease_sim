@@ -13,14 +13,15 @@ import matplotlib.pyplot as plt
 import random
 
 random.seed(2)
+np.random.seed(3)
 
 # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- PARAMETER SETTINGS -------- # #
 # # # # # # # # # # # # # # # # # # # # # # #
-INIT_PPL = 10
+INIT_PPL = 5
 INIT_INFCT = 2
-SIZE_X = 10
-SIZE_Y = 10
+SIZE_X = 5
+SIZE_Y = 5
 NEIGHB = 0      # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
 BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
@@ -36,9 +37,30 @@ def initWorld():
             row.append(Grid(x, y))
         world.append(row)
     return world
+def initPpl():
+    ppl = []
+    for i in range(0, INIT_PPL):
+        x = BARRIER_VER_X
+        y = BARRIER_HOR_Y
+        while x == BARRIER_VER_X or y == BARRIER_HOR_Y:
+        # This loop avoid initiation at the barrier location
+            x = np.random.randint(0, SIZE_X)
+            y = np.random.randint(0, SIZE_Y)
+        if i < INIT_INFCT:
+            ppl.append(People(x=x, y=y, status="infected"))
+        else:
+            ppl.append(People(x=x, y=y, status="healthy"))
+    return ppl
+def updateNumPeopleInWorld(world, ppl):
+    for p in ppl:
+        world[SIZE_Y-1 - p.pos[1]][p.pos[0]].numPpl += 1
+    return world
+    
 
-def plotGrid(world):
-    pass
+#def plotPosition(world):
+#    pass
+#def plotNumPpl(world):
+#    print(world)
 class Grid():
     '''
     
@@ -46,27 +68,28 @@ class Grid():
     def __init__(self, x, y):
         self.pos = np.array([x, y])
         self.state = "safe"
+        self.numPpl = 0
     
     def toHazard(self):
         self.state = "hazard"
     
     def __repr__(self):
         '''
-        
+        This function prints the returned value if print() is used.
         '''
-        return str(self.pos)
-        
+#        return str(self.pos)
+        return str(self.numPpl)
 #        if self.state == "safe":
-#            return 0
+#            return '0'
 #        if self.state == "hazard":
-#            return 1
-
+#            return '1'
+    
 
 class People():
     '''
     
     '''
-    def __init__(self, x, y, status):
+    def __init__(self, x, y, status="healthy"):
         self.x = x
         self.y = y
         self.pos = np.array([x, y])
@@ -75,7 +98,7 @@ class People():
         '''
         Move the people according to Moore or Von Neumann neighbourhoods.
         The moving direction is based on random function which is decoded by 
-        numlock direction as follows:
+        numpad direction as follows:
             
             7 8 9
             4 5 6
@@ -119,8 +142,9 @@ class People():
         elif new_grid == 9:
             self.x += 0
             self.y += -1
-            
+        # check and update the new grid
         self.updatePos()
+        
     def updatePos(self, x, y):
         '''
         Check whether the new step exceeds the domain of the problem or 
@@ -144,7 +168,11 @@ class People():
             self.x = x
             self.y = y
             self.pos = np.array([x, y]) # update position
-        
+    def __repr__(self):
+        '''
+        This function prints the returned value if print() is used.
+        '''
+        return str(self.pos)
             
     
         
@@ -152,3 +180,5 @@ class People():
 # # ----------- START HERE ------------ # #       
 # # # # # # # # # # # # # # # # # # # # # #
 world = initWorld()
+ppl = initPpl()
+world = updateWorld(world, ppl)
