@@ -12,95 +12,143 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
-def distribute(grid, num_r, num_c, numpeep):
-    for i in range(numpeep):
-        rpos = random.randint(0, num_r-1)
-        cpos = random.randint(0, num_c-1)
-        grid[rpos, cpos] += 1
-#        print("Adding 1 to (", xpos, ",", ypos,")")
+random.seed(2)
 
-def makeScatter(grid, num_r, num_c):
-    r_values = []
-    c_values = []
-    count_values = []
-    for row in range(num_r):
-        for col in range(num_c):
-            if grid[row,col] > 0:
-                r_values.append(row)
-                c_values.append(col)
-                count_values.append(grid[row,col]*100)
-#                print("Value at (", row, ",", col, ") is ", grid[row, col])
-    return(r_values, c_values, count_values)
+# # # # # # # # # # # # # # # # # # # # # # #
+# # --------- PARAMETER SETTINGS -------- # #
+# # # # # # # # # # # # # # # # # # # # # # #
+INIT_PPL = 10
+INIT_INFCT = 2
+SIZE_X = 10
+SIZE_Y = 10
+NEIGHB = 0      # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
+BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
+BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
+
+# # # # # # # # # # # # # # # # # # # # # # # # # #
+# # --------- FUNCTIONS AND CLASSES ---------- # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # #
+def initWorld():
+    world = []
+    for y in range(SIZE_Y-1, -1, -1):
+        row = []
+        for x in range(0, SIZE_X):
+            row.append(Grid(x, y))
+        world.append(row)
+    return world
+
+def plotGrid(world):
+    pass
+class Grid():
+    '''
     
-def displayGrid(grid, num_r, num_c):
-    for row in range(num_r-1, -1, -1):
-        for col in range(num_c):
-            print(grid[row,col], end=" ")
-        print()
-
-def plotGrids():
-    Irows, Icols, Icount = makeScatter(infected, NUM_ROWS, NUM_COLS)
-    plt.scatter(Irows, Icols, s=Icount, c="r", alpha=0.5)
-    Urows, Ucols, Ucount = makeScatter(uninfected, NUM_ROWS, NUM_COLS)
-    plt.scatter(Urows, Ucols, s=Ucount, c="b", alpha=0.5)
-    plt.show()
-          
-def movePeeps(cur, next, r, c):
-#    print("Pos (", r, ",", c, ") has ", cur[r,c], " people")
-    for peep in range(cur[r,c]):
-         rMove = random.randint(-1,1)
-         cMove = random.randint(-1,1)
-#         print("Move from (", r, ",", c, ") to (", r+rMove, "," , c+cMove, ")")
-         if (r + rMove) > (NUM_ROWS-1) or (r + rMove) < 0:
-             rMove = 0
-         if (c + cMove) > (NUM_COLS-1) or (c + cMove) < 0:
-             cMove = 0   
-         next[r + rMove, c + cMove] +=1
-#         print("          (", r, ",", c, ") to (", r+rMove, "," , c+cMove, ")")
+    '''
+    def __init__(self, x, y):
+        self.pos = np.array([x, y])
+        self.state = "safe"
     
-def infect(inf, notinf, r, c, prob):
-#    print("Pos (", r, ",", c, ") has ", inf[r,c], " inf people and ", notinf[r,c], " well people")
-    prob = prob * inf[r,c]
-    if prob:
-        for peep in range(notinf[r,c]):
-            if random.random() < prob:
-                inf[r, c] +=1
-                notinf[r, c] -=1
-                print("***** New infection (", r, ",", c, ")")
+    def toHazard(self):
+        self.state = "hazard"
+    
+    def __repr__(self):
+        '''
+        
+        '''
+        return str(self.pos)
+        
+#        if self.state == "safe":
+#            return 0
+#        if self.state == "hazard":
+#            return 1
 
 
-INIT_POP = 100
-INIT_INFECTED = 5
-NUM_COLS = 15
-NUM_ROWS = 10
-NUM_STEPS = 10
-
-#world = np.zeros((NUM_ROWS, NUM_COLS), dtype=np.int)
-infected = np.zeros((NUM_ROWS, NUM_COLS), dtype=np.int)
-uninfected = np.zeros((NUM_ROWS, NUM_COLS), dtype=np.int)
-
-distribute(infected, NUM_ROWS, NUM_COLS, INIT_INFECTED)
-distribute(uninfected, NUM_ROWS, NUM_COLS, INIT_POP)
-
-#print(world)
-#print()
-displayGrid(infected, NUM_ROWS, NUM_COLS)
-print()
-displayGrid(uninfected, NUM_ROWS, NUM_COLS)
-
-plotGrids()
-
-for timestep in range(NUM_STEPS):
-    print("\n###################### TIMESTEP", timestep, "#####################\n")
-    infected2 = np.zeros((NUM_ROWS, NUM_COLS), dtype=np.int)
-    uninfected2 = np.zeros((NUM_ROWS, NUM_COLS), dtype=np.int)
-    for row in range(NUM_ROWS):
-        for col in range(NUM_COLS):
-            infect(infected, uninfected, row, col, 0.5)
-            movePeeps(infected, infected2, row, col)
-            movePeeps(uninfected, uninfected2, row, col)
-    infected = infected2
-    uninfected = uninfected2
-    plotGrids()
-
-print("Done")
+class People():
+    '''
+    
+    '''
+    def __init__(self, x, y, status):
+        self.x = x
+        self.y = y
+        self.pos = np.array([x, y])
+        self.status = status
+    def move(self, NEIGHB):
+        '''
+        Move the people according to Moore or Von Neumann neighbourhoods.
+        The moving direction is based on random function which is decoded by 
+        numlock direction as follows:
+            
+            7 8 9
+            4 5 6
+            1 2 3   for Moore neighbourhoods,
+        and    
+              8
+            4 5 6
+              2     for Von Neumann neighbourhoods.
+        
+        The moving step is validated by updatePos() function.        
+        '''
+        if NEIGHB == 0: # if Moore neighbourhoods
+            new_grid = np.random.choice([1,2,3,4,5,6,7,8,9])
+        if NEIGHB == 1: # if Von Neumann neighbourhoods
+            new_grid = np.random.choice([  2,  4,5,6,  8  ])
+        
+        if new_grid == 1:
+            self.x += -1
+            self.y += -1
+        elif new_grid == 2:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 3:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 4:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 5:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 6:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 7:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 8:
+            self.x += 0
+            self.y += -1
+        elif new_grid == 9:
+            self.x += 0
+            self.y += -1
+            
+        self.updatePos()
+    def updatePos(self, x, y):
+        '''
+        Check whether the new step exceeds the domain of the problem or 
+        clashes the barrier.
+        '''
+        # if x exceeds the boundary, keep it at boundary
+        if x < 0:
+            x = 0
+        if x >= SIZE_X:
+            x = SIZE_X-1
+        # if y exceeds the boundary, keep it at boundary
+        if y < 0:
+            y = 0
+        if y >= SIZE_Y:
+            y = SIZE_Y-1
+        # if x or y crashes the barrier, do not move
+        if x == BARRIER_VER_X or y == BARRIER_HOR_Y:
+            self.x = self.pos[0] # restore to previous value
+            self.y = self.pos[1] # restore to previous value
+        else:
+            self.x = x
+            self.y = y
+            self.pos = np.array([x, y]) # update position
+        
+            
+    
+        
+# # # # # # # # # # # # # # # # # # # # # #        
+# # ----------- START HERE ------------ # #       
+# # # # # # # # # # # # # # # # # # # # # #
+world = initWorld()
