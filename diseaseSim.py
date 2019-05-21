@@ -25,6 +25,8 @@ SIZE_Y = 5
 NEIGHB = 0      # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
 BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
+NUM_STEPS = 5
+INFCT_THRES = 0.5
 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
@@ -51,11 +53,25 @@ def initPpl():
         else:
             ppl.append(People(x=x, y=y, status="healthy"))
     return ppl
-def updateNumPeopleInWorld(world, ppl):
+def updatePeopleInWorld(world, ppl):
     for p in ppl:
         world[SIZE_Y-1 - p.pos[1]][p.pos[0]].numPpl += 1
     return world
-    
+
+def updateInfectPeople(ppl):
+    for p1 in ppl:
+        if p1.status == "infected":
+            hazardPos = p1.pos
+            for p2 in ppl:
+                if p2.pos == hazardPos:
+                    prob = np.random.uniform(0,1)
+                    if prob > INFCT_THRES:
+                        p2.status == "infected"
+    return ppl
+def movePeople(ppl):
+    for p in ppl:
+        p.move()
+    return ppl
 
 #def plotPosition(world):
 #    pass
@@ -94,7 +110,7 @@ class People():
         self.y = y
         self.pos = np.array([x, y])
         self.status = status
-    def move(self, NEIGHB):
+    def move(self):
         '''
         Move the people according to Moore or Von Neumann neighbourhoods.
         The moving direction is based on random function which is decoded by 
@@ -181,4 +197,9 @@ class People():
 # # # # # # # # # # # # # # # # # # # # # #
 world = initWorld()
 ppl = initPpl()
-world = updateWorld(world, ppl)
+world = updatePeopleInWorld(world, ppl)
+
+for t in range(0, NUM_STEPS):
+    ppl = updateInfectPeople(ppl)
+    ppl = movePeople(ppl)
+    world = updatePeopleInWorld(world, ppl)
