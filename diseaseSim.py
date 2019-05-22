@@ -63,7 +63,7 @@ def updateInfectPeople(ppl):
         if p1.status == "infected":
             hazardPos = p1.pos
             for p2 in ppl:
-                if p2.pos == hazardPos:
+                if (p2.pos == hazardPos).all():
                     prob = np.random.uniform(0,1)
                     if prob > INFCT_THRES:
                         p2.status == "infected"
@@ -159,7 +159,7 @@ class People():
             self.x += 0
             self.y += -1
         # check and update the new grid
-        self.updatePos()
+        self.updatePos(self.x, self.y)
         
     def updatePos(self, x, y):
         '''
