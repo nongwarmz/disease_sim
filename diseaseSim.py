@@ -53,7 +53,14 @@ def initPpl():
         else:
             ppl.append(People(x=x, y=y, status="healthy"))
     return ppl
+def refreshPpl(world):
+    for w in world:
+        for grid in w:
+            grid.numPpl = 0
+    return world
+
 def updatePeopleInWorld(world, ppl):
+    world = refreshPpl(world)
     for p in ppl:
         world[SIZE_Y-1 - p.pos[1]][p.pos[0]].numPpl += 1
     return world
@@ -79,7 +86,7 @@ def movePeople(ppl):
 #    print(world)
 class Grid():
     '''
-    
+    The Grid object represents one particular grid.
     '''
     def __init__(self, x, y):
         self.pos = np.array([x, y])
@@ -135,29 +142,29 @@ class People():
             self.x += -1
             self.y += -1
         elif new_grid == 2:
-            self.x += 0
+            self.x +=  0
             self.y += -1
         elif new_grid == 3:
-            self.x += 0
+            self.x +=  1
             self.y += -1
         elif new_grid == 4:
-            self.x += 0
-            self.y += -1
+            self.x += -1
+            self.y +=  0
         elif new_grid == 5:
-            self.x += 0
-            self.y += -1
+            self.x +=  0
+            self.y +=  0
         elif new_grid == 6:
-            self.x += 0
-            self.y += -1
+            self.x +=  1
+            self.y +=  0
         elif new_grid == 7:
-            self.x += 0
-            self.y += -1
+            self.x += -1
+            self.y +=  1
         elif new_grid == 8:
-            self.x += 0
-            self.y += -1
+            self.x +=  0
+            self.y +=  1
         elif new_grid == 9:
-            self.x += 0
-            self.y += -1
+            self.x +=  1
+            self.y +=  1
         # check and update the new grid
         self.updatePos(self.x, self.y)
         
@@ -203,3 +210,5 @@ for t in range(0, NUM_STEPS):
     ppl = updateInfectPeople(ppl)
     ppl = movePeople(ppl)
     world = updatePeopleInWorld(world, ppl)
+    print(np.array(world))
+    print(ppl)
