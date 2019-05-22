@@ -18,15 +18,15 @@ np.random.seed(3)
 # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- PARAMETER SETTINGS -------- # #
 # # # # # # # # # # # # # # # # # # # # # # #
-INIT_PPL = 5
-INIT_INFCT = 2
+INIT_PPL = 10
+INIT_INFCT = 4
 SIZE_X = 5
 SIZE_Y = 5
 NEIGHB = 0      # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
 BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
 NUM_STEPS = 5
-INFCT_THRES = 0.5
+INFCT_THRES = 0.8
 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
@@ -70,16 +70,21 @@ def updateInfectPeople(ppl):
         if p1.status == "infected":
             hazardPos = p1.pos
             for p2 in ppl:
-                if (p2.pos == hazardPos).all():
+                if (p2.pos == hazardPos).all() and p2.status != "infected":
                     prob = np.random.uniform(0,1)
-                    if prob > INFCT_THRES:
-                        p2.status == "infected"
+                    if prob < INFCT_THRES:
+                        p2.status = "infected"
+                        print("People get infected at grid", hazardPos)
     return ppl
 def movePeople(ppl):
     for p in ppl:
         p.move()
     return ppl
-
+def printPplStatus(ppl):
+    stat = []
+    for p in ppl:
+        stat.append(p.status)
+    print(stat)
 #def plotPosition(world):
 #    pass
 #def plotNumPpl(world):
@@ -207,8 +212,10 @@ ppl = initPpl()
 world = updatePeopleInWorld(world, ppl)
 
 for t in range(0, NUM_STEPS):
+    print("======= Time step {} =======".format(t) )
+    print(np.array(world))
     ppl = updateInfectPeople(ppl)
     ppl = movePeople(ppl)
-    world = updatePeopleInWorld(world, ppl)
-    print(np.array(world))
+    world = updatePeopleInWorld(world, ppl)    
     print(ppl)
+    printPplStatus(ppl)
