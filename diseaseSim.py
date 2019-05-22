@@ -20,12 +20,12 @@ np.random.seed(3)
 # # # # # # # # # # # # # # # # # # # # # # #
 INIT_PPL = 10
 INIT_INFCT = 4
-SIZE_X = 5
-SIZE_Y = 5
-NEIGHB = 0      # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
+SIZE_X = 5              # size of x-domain
+SIZE_Y = 5              # size of y-domain
+NEIGHB = 0              # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
 BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
-NUM_STEPS = 5
+NUM_STEPS = 10
 INFCT_THRES = 0.8
 CURE_THRES = 0.1
 DEAD_THRES = 0.1
@@ -103,10 +103,13 @@ def printPplStatus(ppl):
     for p in ppl:
         stat.append(p.status)
     print(stat)
-#def plotPosition(world):
-#    pass
-#def plotNumPpl(world):
-#    print(world)
+def countInfected(ppl):
+    cnt = 0
+    for p in ppl:
+        if p.status == "infected":
+            cnt+=1
+    return cnt
+
 class Grid():
     '''
     The Grid object represents one particular grid.
@@ -123,12 +126,7 @@ class Grid():
         '''
         This function prints the returned value if print() is used.
         '''
-#        return str(self.pos)
         return str(self.numPpl)
-#        if self.state == "safe":
-#            return '0'
-#        if self.state == "hazard":
-#            return '1'
     
 
 class People():
@@ -228,17 +226,20 @@ class People():
 world = initWorld()
 ppl = initPpl()
 world = updatePeopleInWorld(world, ppl)
-infctHist = []
+infctHist = [countInfected(ppl)]
 
 for t in range(0, NUM_STEPS):
     print("======= Time step {} =======".format(t) )
     print("** World Map Showing how many people in each grid **")
     print(np.array(world))
-    ppl = updateInfectPeople(ppl)
-    ppl = movePeople(ppl)
-    ppl =  curePeople(ppl)
-    world = updatePeopleInWorld(world, ppl)    
+    world = updatePeopleInWorld(world, ppl)   
+    print("People position:")
     print(ppl) # This print shows location of each People
+    print("People status:")
     printPplStatus(ppl) # This print shows the status of each People
-    
-    
+    ppl = updateInfectPeople(ppl)
+    ppl = curePeople(ppl)
+    ppl = movePeople(ppl)
+    infctHist.append(countInfected(ppl))
+
+plt.plot(infctHist)
