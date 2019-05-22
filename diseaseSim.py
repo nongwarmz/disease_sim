@@ -28,6 +28,7 @@ BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disab
 NUM_STEPS = 5
 INFCT_THRES = 0.8
 CURE_THRES = 0.1
+DEAD_THRES = 0.1
 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
@@ -85,9 +86,17 @@ def curePeople(ppl):
                 p.status = "healthy"
                 print("People get cured at grid", p.pos)
     return ppl
+def deadPeople(ppl):
+    for p in ppl:
+        if p.status == "infected":
+            prob = np.random.uniform(0,1)
+            if prob < DEAD_THRES:
+                p.status = "dead"
+                print("People died at grid", p.pos)
 def movePeople(ppl):
     for p in ppl:
-        p.move()
+        if p.status != "dead":
+            p.move()
     return ppl
 def printPplStatus(ppl):
     stat = []
