@@ -27,6 +27,7 @@ BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
 NUM_STEPS = 5
 INFCT_THRES = 0.8
+CURE_THRES = 0.1
 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
@@ -75,6 +76,14 @@ def updateInfectPeople(ppl):
                     if prob < INFCT_THRES:
                         p2.status = "infected"
                         print("People get infected at grid", hazardPos)
+    return ppl
+def curePeople(ppl):
+    for p in ppl:
+        if p.status == "infected":
+            prob = np.random.uniform(0,1)
+            if prob < CURE_THRES:
+                p.status = "healthy"
+                print("People get cured at grid", p.pos)
     return ppl
 def movePeople(ppl):
     for p in ppl:
@@ -210,12 +219,17 @@ class People():
 world = initWorld()
 ppl = initPpl()
 world = updatePeopleInWorld(world, ppl)
+infctHist = []
 
 for t in range(0, NUM_STEPS):
     print("======= Time step {} =======".format(t) )
+    print("** World Map Showing how many people in each grid **")
     print(np.array(world))
     ppl = updateInfectPeople(ppl)
     ppl = movePeople(ppl)
+    ppl =  curePeople(ppl)
     world = updatePeopleInWorld(world, ppl)    
-    print(ppl)
-    printPplStatus(ppl)
+    print(ppl) # This print shows location of each People
+    printPplStatus(ppl) # This print shows the status of each People
+    
+    
