@@ -34,6 +34,9 @@ DEAD_THRES = 0.1
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 def initWorld():
+    '''
+    Initiate the world that contains 2d-list of Grid objects.
+    '''
     world = []
     for y in range(SIZE_Y-1, -1, -1):
         row = []
@@ -41,7 +44,11 @@ def initWorld():
             row.append(Grid(x, y))
         world.append(row)
     return world
+
 def initPpl():
+    '''
+    Initiate list of People objects.
+    '''
     ppl = []
     for i in range(0, INIT_PPL):
         x = BARRIER_VER_X
@@ -55,19 +62,30 @@ def initPpl():
         else:
             ppl.append(People(x=x, y=y, status="healthy"))
     return ppl
+
 def refreshPpl(world):
+    '''
+    Refresh number of People in each Grid.
+    '''
     for w in world:
         for grid in w:
             grid.numPpl = 0
     return world
 
 def updatePeopleInWorld(world, ppl):
+    '''
+    Count number of People in each Grid and update into Grid.numPpl.
+    '''
     world = refreshPpl(world)
     for p in ppl:
         world[SIZE_Y-1 - p.pos[1]][p.pos[0]].numPpl += 1
     return world
 
 def updateInfectPeople(ppl):
+    '''
+    Healthy People whowho stays in the same Grid as Infected People has a chance
+    to get infected.
+    '''
     for p1 in ppl:
         if p1.status == "infected":
             hazardPos = p1.pos
@@ -79,6 +97,9 @@ def updateInfectPeople(ppl):
                         print("People get infected at grid", hazardPos)
     return ppl
 def curePeople(ppl):
+    '''
+    Infected People has a chance to be cured.
+    '''
     for p in ppl:
         if p.status == "infected":
             prob = np.random.uniform(0,1)
@@ -87,6 +108,9 @@ def curePeople(ppl):
                 print("People get cured at grid", p.pos)
     return ppl
 def deadPeople(ppl):
+    '''
+    Infected People has a chance to die. Dead People are unable to be cured.
+    '''
     for p in ppl:
         if p.status == "infected":
             prob = np.random.uniform(0,1)
@@ -94,16 +118,25 @@ def deadPeople(ppl):
                 p.status = "dead"
                 print("People died at grid", p.pos)
 def movePeople(ppl):
+    '''
+    Move list of People. If they are still alive.
+    '''
     for p in ppl:
         if p.status != "dead":
             p.move()
     return ppl
 def printPplStatus(ppl):
+    '''
+    Print status of of list of People.
+    '''
     stat = []
     for p in ppl:
         stat.append(p.status)
     print(stat)
 def countInfected(ppl):
+    '''
+    Count number of infected People.
+    '''
     cnt = 0
     for p in ppl:
         if p.status == "infected":
@@ -112,16 +145,16 @@ def countInfected(ppl):
 
 class Grid():
     '''
-    The Grid object represents one particular grid.
+    Grid class to represent one particular location in the world. 
+    
+    Attributes:
+        pos (float, float) representing position of the Grid
+        numPpl (int) representing number of People in this Grid
     '''
     def __init__(self, x, y):
         self.pos = np.array([x, y])
-        self.state = "safe"
         self.numPpl = 0
-    
-    def toHazard(self):
-        self.state = "hazard"
-    
+       
     def __repr__(self):
         '''
         This function prints the returned value if print() is used.
@@ -131,11 +164,15 @@ class Grid():
 
 class People():
     '''
+    People class to represent one People.
     
+    Attributes:
+        pos (float, float) representing position of People. It is redundant to 
+    x and y due to make the move method
+        status (str) representing status of the People. Available choices are:
+            [healthy, infected, dead]
     '''
     def __init__(self, x, y, status="healthy"):
-        self.x = x
-        self.y = y
         self.pos = np.array([x, y])
         self.status = status
     def move(self):
@@ -159,35 +196,36 @@ class People():
         if NEIGHB == 1: # if Von Neumann neighbourhoods
             new_grid = np.random.choice([  2,  4,5,6,  8  ])
         
+        x, y = self.pos
         if new_grid == 1:
-            self.x += -1
-            self.y += -1
+            x += -1
+            y += -1
         elif new_grid == 2:
-            self.x +=  0
-            self.y += -1
+            x +=  0
+            y += -1
         elif new_grid == 3:
-            self.x +=  1
-            self.y += -1
+            x +=  1
+            y += -1
         elif new_grid == 4:
-            self.x += -1
-            self.y +=  0
+            x += -1
+            y +=  0
         elif new_grid == 5:
-            self.x +=  0
-            self.y +=  0
+            x +=  0
+            y +=  0
         elif new_grid == 6:
-            self.x +=  1
-            self.y +=  0
+            x +=  1
+            y +=  0
         elif new_grid == 7:
-            self.x += -1
-            self.y +=  1
+            x += -1
+            y +=  1
         elif new_grid == 8:
-            self.x +=  0
-            self.y +=  1
+            x +=  0
+            y +=  1
         elif new_grid == 9:
-            self.x +=  1
-            self.y +=  1
+            x +=  1
+            y +=  1
         # check and update the new grid
-        self.updatePos(self.x, self.y)
+        self.updatePos(x, y)
         
     def updatePos(self, x, y):
         '''
@@ -206,11 +244,9 @@ class People():
             y = SIZE_Y-1
         # if x or y crashes the barrier, do not move
         if x == BARRIER_VER_X or y == BARRIER_HOR_Y:
-            self.x = self.pos[0] # restore to previous value
-            self.y = self.pos[1] # restore to previous value
+            x = self.pos[0] # restore to previous value
+            y = self.pos[1] # restore to previous value
         else:
-            self.x = x
-            self.y = y
             self.pos = np.array([x, y]) # update position
     def __repr__(self):
         '''
