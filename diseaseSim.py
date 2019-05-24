@@ -18,17 +18,18 @@ np.random.seed(3)
 # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- PARAMETER SETTINGS -------- # #
 # # # # # # # # # # # # # # # # # # # # # # #
-INIT_PPL = 10
-INIT_INFCT = 4
+INIT_PPL = 10           # initial number of overall people
+INIT_INFCT = 4          # initial number of infected people
 SIZE_X = 5              # size of x-domain
 SIZE_Y = 5              # size of y-domain
 NEIGHB = 0              # 0: Moore neighbourhoods, 1: Von Neumann neighbourhoods
 BARRIER_VER_X = -1      # location of the vertical barrier. set to -1 to disable
 BARRIER_HOR_Y = -1      # location of the horizontal barrier. set to -1 to disable
-NUM_STEPS = 10
-INFCT_THRES = 0.8
-CURE_THRES = 0.1
-DEAD_THRES = 0.1
+NUM_AIRPORTS = 3        # number of airports. 
+NUM_STEPS = 10          # number of simulation steps
+INFCT_THRES = 0.8       # threshold of healthy people to be infected
+CURE_THRES = 0.1        # threshold of infected people to be cured
+DEAD_THRES = 0.1        # threshold of infected people to die
 
 # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # --------- FUNCTIONS AND CLASSES ---------- # # 
@@ -44,7 +45,17 @@ def initWorld():
             row.append(Grid(x, y))
         world.append(row)
     return world
-
+def initAirport():
+    i = 0
+    airports = []
+    while i<NUM_AIRPORTS:
+        x = np.random.randint(SIZE_X)
+        y = SIZE_Y-1 - np.random.randint(SIZE_Y)
+        if world[y][x].airport == False:
+            world[y][x].airport = True
+            airports.append(world[y][x].pos)
+            i += 1
+    return airports
 def initPpl():
     '''
     Initiate list of People objects.
@@ -151,10 +162,10 @@ class Grid():
         pos (float, float) representing position of the Grid
         numPpl (int) representing number of People in this Grid
     '''
-    def __init__(self, x, y):
+    def __init__(self, x, y, airport=False):
         self.pos = np.array([x, y])
         self.numPpl = 0
-       
+        self.airport = airport
     def __repr__(self):
         '''
         This function prints the returned value if print() is used.
@@ -248,6 +259,15 @@ class People():
             y = self.pos[1] # restore to previous value
         else:
             self.pos = np.array([x, y]) # update position
+    def takeFlight(self):
+        '''
+        Change the position to a new airport if People stay at the airport.
+        '''
+        new_pos = self.pos
+        while new_pos == self.pos:
+            new_pos = np.random.choice(airports)
+        self.pos = new_pos
+        
     def __repr__(self):
         '''
         This function prints the returned value if print() is used.
@@ -260,6 +280,7 @@ class People():
 # # ----------- START HERE ------------ # #       
 # # # # # # # # # # # # # # # # # # # # # #
 world = initWorld()
+airports = initAirport()
 ppl = initPpl()
 world = updatePeopleInWorld(world, ppl)
 infctHist = [countInfected(ppl)]
