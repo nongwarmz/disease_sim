@@ -11,6 +11,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import pandas as pd
 import sys
 
 # Keep these numbers to maintain the repeatability of the results
@@ -127,8 +128,8 @@ def die(inf, r, c, prob):
             print("***** Infection die (", r, ",", c, ")")
     return inf
 
-INIT_POP = 100
-INIT_INFECTED = int(sys.argv[1])
+INIT_POP = int(sys.argv[1])
+INIT_INFECTED = 20
 NUM_COLS = 15
 NUM_ROWS = 15
 NUM_STEPS = 5
@@ -179,7 +180,8 @@ for timestep in range(NUM_STEPS):
     print("Total infected pelple: ", infected.sum().sum())
 
 print("Done")
-f = open("output.txt", "a")
-text = "Initial infected: {}, Final uninfected: {}, Final infected {}\n".format(INIT_INFECTED, uninfected.sum().sum(), infected.sum().sum())
-f.write(text)
-f.close()
+with open("output.txt", "a") as f:
+    #text = "Initial Population: {}, Final uninfected: {}, Final infected {}\n".format(INIT_POP, uninfected.sum().sum(), infected.sum().sum())
+    dead = INIT_POP+INIT_INFECTED-uninfected.sum().sum()-infected.sum().sum()
+    text = "{}, {}, {}, {}, {}\n".format(INIT_POP, INIT_INFECTED, uninfected.sum().sum(), infected.sum().sum(), dead)
+    f.write(text)
